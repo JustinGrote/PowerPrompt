@@ -1,0 +1,3 @@
+function New-PowerPromptSegment {
+    $SCRIPT:PowerPrompt = [Text.StringBuilder]::new()
+}

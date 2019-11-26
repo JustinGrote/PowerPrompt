@@ -1,0 +1,59 @@
+function Add-PowerPromptSegment {
+    [CmdletBinding()]
+    param (
+        #The message you wish to append to the pipeline
+        [Parameter(Mandatory,ValueFromPipeline)][String]$Message,
+        #Optional prompt you wish to append to. Uses the module default normally
+        [Text.StringBuilder]$Prompt = $SCRIPT:PowerPrompt,
+        #The ANSI color you wish to use for this segment. Picks a sequentially increasing consolecolor
+        $Color
+    )
+
+    begin {
+        if (-not $SCRIPT:PowerPrompt) {
+            New-PowerPromptSegment
+        }
+    }
+
+    process {
+        [void]$SCRIPT:PowerPrompt.Append($Message)
+    }
+}
+$lastcolor = $null
+$color = 'green'
+write-host -fore White -back red 'jgrote' -nonewline
+write-host -fore DarkCyan -back red -NoNewline 'heywhatsup'
+
+function Get-LastCommandTimeString {
+    $lastCMDTime = ""
+    $lastCMD = get-history -count 1
+
+    #Avoids showing time when an empty "enter" key is hit
+    if ($script:PromptLastHistoryID -eq $lastCMD.ID) {return}
+    $script:PromptLastHistoryID = $lastCMD.Id
+
+    if ($lastCMD) {
+        $lastCMDTime = ($lastCMD.EndExecutionTime - $lastCMD.StartExecutionTime)
+        $lastCMDTimeFormat = "mm\:ss\.fff"
+        if ($lastCMDTime.Hours) {
+            $lastCMDTimeFormat = "hh\:" + $lastCMDTimeFormat
+        }
+
+        [PSCustomObject]@{
+            duration = $lastCMDTime.ToString($lastCMDTimeFormat)
+            command = ($lastCMD -split ' ')[0]
+        }
+    }
+}
+$lastCMDTimeString = Get-LastCommandTimeString
+if ($lastCMDTimeString) {
+    write-host "$($ansi.brightblack)[$($lastCMDTimeString.duration)]"
+}
+
+$GLOBAL:prompt = '> '
+
+function prompt {
+    $prompt
+}
+
+Set-PSReadLineOption -PromptText ' '
