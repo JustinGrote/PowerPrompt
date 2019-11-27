@@ -16,8 +16,6 @@ function Get-PowerPromptCurrentDirectory {
         } else {
 
         }
-
-
         $currentDirectory = $currentDirectory -replace $homePathRegex, '~'
     }
 

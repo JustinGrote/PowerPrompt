@@ -1,3 +1,3 @@
-function New-PowerPrompt {
+function New-PowerPromptBuilder {
     return [PromptBuilder]::new()
 }
