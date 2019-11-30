@@ -1,10 +1,5 @@
 Describe "Add-PowerPrompt" {
 
-    function DebugPrompt ([String]$Prompt) {
-        write-debug "Prompt: $Prompt"
-        write-debug "Escaped Prompt: $($Prompt -replace '\e','E')"
-    }
-
     import-module $PSScriptRoot\..\PowerPrompt\PowerPrompt.psd1 -force
     $testCases = @(
         @{
@@ -31,6 +26,7 @@ Describe "Add-PowerPrompt" {
         param($prompt,$inputobject,$result,$background,$foreground)
         Add-PowerPrompt -prompt $prompt -inputobject $inputobject -background $background -OutVariable Output
         DebugPrompt $Output
+        DebugPrompt $Result
         $Output | Should -Be $result
     }
 
@@ -38,6 +34,7 @@ Describe "Add-PowerPrompt" {
         $Result = Import-CliXml $PSScriptRoot\Mocks\pestercustomseparator.clixml
         Add-PowerPrompt -prompt $null -inputobject 'pesterCustomSeparator' -Separator '>|>' -back blue -OutVariable Output
         DebugPrompt $Output
+        DebugPrompt $Result
         $Output | Should -Be $result
     }
 
@@ -46,6 +43,7 @@ Describe "Add-PowerPrompt" {
         $Result = Import-CliXml $PSScriptRoot\Mocks\pestercustomseparator2.clixml
         Add-PowerPrompt -prompt $Prompt -inputobject 'pesternormalseparator' -Separator ([char]0xE0C0) -back cyan -OutVariable Output
         DebugPrompt $Output
+        DebugPrompt $Result
         $Output | Should -Be $Result
     }
 
@@ -54,6 +52,34 @@ Describe "Add-PowerPrompt" {
         $Result = Import-CliXml $PSScriptRoot\Mocks\pestercustomseparator2.clixml
         $Prompt | Add-PowerPrompt 'pesternormalseparator' -Separator ([char]0xE0C0) -back cyan -OutVariable Output
         DebugPrompt $Output
+        DebugPrompt $Result
         $Output | Should -Be $Result
     }
+
+    It 'Adds a segment via the pipeline' {
+        $Prompt = Import-Clixml $PSScriptRoot\Mocks\pestercustomseparator.clixml
+        $Result = Import-CliXml $PSScriptRoot\Mocks\pestercustomseparator2.clixml
+        $Prompt | Add-PowerPrompt 'pesternormalseparator' -Separator ([char]0xE0C0) -back cyan -OutVariable Output
+        DebugPrompt $Output
+        DebugPrompt $Result
+        $Output | Should -Be $Result
+    }
+
+    It 'Processes custom separator colors' {
+        $AddPowerPromptParams = @{
+            Prompt = (Import-Clixml $PSScriptRoot\Mocks\pesterprompt1.clixml)
+            InputObject = 'pesterCustomSeparatorColor'
+            ForegroundColor = 'cyan'
+            BackgroundColor = 'yellow'
+            SeparatorForegroundColor = 'red'
+            SeparatorBackgroundColor = 'yellow'
+        }
+        Add-PowerPrompt @AddPowerPromptParams -OutVariable Output
+        DebugPrompt $Output
+        DebugPrompt $Result
+        #$Result = Import-Clixml $PSScriptRoot\Mocks\pestercustomseparator2.clixml
+        #$Output | Should -Be $Result
+    }
+
+
 }

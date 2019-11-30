@@ -40,8 +40,6 @@ function Add-PowerPrompt {
             $e = [char]0x1b
         }
         $resetColors = "$e[39;49m"
-        $fgcode = "$e[38;2;"
-        $bgcode = "$e[48;2;"
     }
 
     process { foreach ($promptItem in $prompt) {
@@ -61,58 +59,38 @@ function Add-PowerPrompt {
         }
         #TODO: Separator Styles
         if (-not $SeparatorBackgroundColor) {
-            $separatorColorCode = Switch-AnsiRGB $bgColorCode
+            $separatorBackgroundColorCode = Switch-AnsiRGB $bgColorCode
         } else {
-            $separatorColorCode = ConvertToAnsiRGB -Color $SeparatorBackgroundColor
+            $separatorBackgroundColorCode = ConvertTo-AnsiRGB -Color $SeparatorBackgroundColor
+        }
+        if ($SeparatorForegroundColor) {
+            $separatorForegroundColorCode += ConvertTo-AnsiRGB -Color $SeparatorForegroundColor -Foreground
         }
 
-
-        [String]$PSPromptEnd = "${resetColors}${separatorColorCode}${Separator}${resetColors}"
+        [String]$PSPromptEnd = "${resetColors}${separatorBackgroundColorCode}${separatorForegroundColorCode}${Separator}${resetColors}"
         [String]$PSPromptSegment = "${bgColorCode}${fgColorCode}${InputObject}${PSPromptEnd}"
 
+        #If there is no existing prompt, stop here and render as a new prompt segment
         if (-not $Prompt) {
             #Render the new prompt segment
             return $PSPromptSegment
         }
 
-        #If there is a prompt, let's first detect the separator
-        $ansiColorCodeRegex = "\e\[[34]8;2;\d{1,3};\d{1,3};\d{1,3}m"
-        $resetColorRegex = [Regex]::Escape($resetColors)
+        #Detect the current end prompt and use it as the basis to join the two segments together
+        $promptWithSeparator = Split-PromptSeparator $Prompt
 
-        #Generic matcher for PSPromptEnd, regardless of color
-        $lastSeparatorRegex = if ($lastSeparator) {
-            [Regex]::Escape($lastSeparator)
-        } else {
-            #Match 1 to 3 characters of any type.
-            #TODO: Get better separator matcher
-            '.{1,3}'
+        #If the last separator only had a foreground color, assume it is a powerline Style
+        #TODO: Separator Styles
+        if ($PromptWithSeparator.separator.ForegroundColorCode -and -not $PromptWithSeparator.separator.BackgroundColorCode) {
+            $separatorForegroundColorCode = $promptWithSeparator.separator.ForegroundColorCode
+            $separatorBackgroundColorCode = $bgColorCode
+            $Separator = $promptWithSeparator.separator.separator
         }
 
-        $PSPromptEndRegex = "(.+?${resetColorRegex})(?<lastfgcolor>${ansiColorCodeRegex})(?<lastcolor2>${ansiColorCodeRegex})?(?<lastSeparator>${lastSeparatorRegex})${resetColorRegex}$"
-        if ($Prompt -match $PSPromptEndRegex) {
-            #The next -replace will overwrite $matches, so we need to preserve it now
-            $promptMatches = $matches
+        #Reattach the prompt separator that flows to the new prompt segment
+        $Prompt = $promptWithSeparator.BasePrompt + "${separatorBackgroundColorCode}${separatorForegroundColorCode}${Separator}${resetColors}"
 
-            #Strip the separator and its formatting colors
-            $Prompt = $Prompt -replace $PSPromptEndRegex,'$1'
-
-            if ($SeparatorForegroundColor) {
-                $Prompt += $SeparatorForegroundColor
-            } else {
-                $Prompt += $promptMatches.lastfgcolor
-            }
-            if ($SeparatorBackgroundColor) {
-                $Prompt += $SeparatorBackgroundColor
-            } else {
-                $Prompt += $bgColorCode
-            }
-
-            $Prompt += $promptMatches.lastSeparator
-        } else {
-            write-warning "Couldn't detect the last separator character $lastSeparator, assuming you meant to do this and ignoring."
-        }
-
-        #Append the new segment to the prompt fragment
+        #Append the new segment to the existing prompt fragment
         $Prompt += $PSPromptSegment
 
         return $prompt

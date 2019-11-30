@@ -81,7 +81,7 @@
                 "-ExecutionPolicy",
                 "Bypass",
                 "-Command",
-                "Invoke-Build Test"
+                "Invoke-Pester"
             ],
             "problemMatcher": "$pester"
         },
@@ -96,7 +96,7 @@
                 "-ExecutionPolicy",
                 "Bypass",
                 "-Command",
-                "Invoke-Build Test"
+                "Invoke-Pester"
             ],
             "problemMatcher": "$pester",
             "options": {

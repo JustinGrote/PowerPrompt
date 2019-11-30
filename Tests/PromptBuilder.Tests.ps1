@@ -19,6 +19,18 @@ Describe "PromptBuilder" {
                 $promptBuilder.ToString() | Should -Be $Result
             }
         }
+
+        Context "Add" {
+            It "HashTable" {
+                $promptbuilder = [PromptBuilder]::new()
+                $promptbuilder.Add(@{
+                    PromptText = 'pester'
+                    BackgroundColor = 'red'
+                    ForegroundColor = 'blue'
+                })
+                write-host ([String]$PromptBuilder)
+            }
+        }
     }
 
 

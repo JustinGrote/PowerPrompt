@@ -2,35 +2,39 @@ using namespace System.Collections.Generic
 #NOTE: I tried inheriting List[String] but iCollections do weird stuff in powershell with adding and subtracting, auto
 #converting into Object arrays rather than the requested Op_Addition behavior
 class PromptBuilder {
-    #How many prompt segments, used for caculating next prompt color
-    [List[PSObject]]$Prompt = [List[PSObject]]::new()
+    #The prompt segments included
+    [List[PromptSegment]]$Prompt = [List[PromptSegment]]::new()
+
     #The seed for the random colors selected when the prompt is built, if you don't specify one.
     [int]$PromptColorSeed = 0
 
     PromptBuilder () {
         $this
     }
-    PromptBuilder ([String]$String) {
-        $this.Add($String)
-    }
     PromptBuilder ([String[]]$String) {
         $String.Foreach{
             $this.Add([String]$PSItem)
         }
     }
+    PromptBuilder ([String]$String) {
+        $this.add($String)
+    }
+    PromptBuilder ([PromptSegment]$PromptSegment) {
+        $this.add($PromptSegment)
+    }
 
     #Pass through these methods to the List object
-    [void] Add([String]$String) {
+    [void] Add([PromptSegment]$String) {
         $this.Prompt.Add($String)
     }
-    [void] Remove([String]$String) {
+    [void] Remove([PromptSegment]$String) {
         $this.Prompt.Remove($String)
     }
 
     #Enable use of the powershell + and += operators
     static [PromptBuilder] Op_Addition(
         [PromptBuilder]$Left,
-        [String]$Right
+        [PromptSegment]$Right
     ) {
         $Left.Add($Right)
         return $Left
@@ -39,7 +43,7 @@ class PromptBuilder {
     #Enable use of the powershell - and -= operators
     static [PromptBuilder] Op_Subtraction(
         [PromptBuilder]$Left,
-        [PromptBuilder]$Right
+        [PromptSegment]$Right
     ) {
         $Left.Remove($Right)
         return $Left
@@ -52,7 +56,13 @@ class PromptBuilder {
 
         [String]$promptOutput = $null
         foreach ($PromptItem in $this.prompt) {
-            $promptOutput = $promptOutput | Add-PowerPrompt -InputObject $PromptItem
+            $AddPowerPromptParams = @{InputObject = $PromptItem.PromptText}
+            ('BackgroundColor','ForegroundColor','Separator').foreach{
+                if ($PromptItem.$PSItem) {
+                    $AddPowerPromptParams.$PSItem = $PromptItem.$PSItem
+                }
+            }
+            $promptOutput = $promptOutput | Add-PowerPrompt @AddPowerPromptParams
         }
 
         #Re-randomize so we don't affect other applications potentially
