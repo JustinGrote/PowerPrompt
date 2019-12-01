@@ -9,9 +9,22 @@ foreach ($ScriptPathItem in 'Private','Public','Classes') {
 }
 #endregion SourceInit
 
-    # if ('AddYamlFile' -notin (get-typedata "Microsoft.Extensions.Configuration.ConfigurationBuilder").members.keys) {
-    #     Update-TypeData -TypeName Microsoft.Extensions.Configuration.ConfigurationBuilder -MemberName AddYamlFile -MemberType ScriptMethod -Value {
-    #         param([String]$Path)
-    #         [Microsoft.Extensions.Configuration.YamlConfigurationExtensions]::AddYamlFile($this, $Path)
-    #     }
-    # }
+$GLOBAL:PowerPromptSettings = @{}
+if ($host.ui.SupportsVirtualTerminal) {
+    $PowerPromptSettings.SupportsANSI = $true
+}
+
+if ($env:WT_SESSION) {
+    $PowerPromptSettings.SupportsEmoji = $true
+
+    #TODO: Better nerd prompt determination
+    $PowerPromptSettings.SupportsNerdFont = $true
+}
+
+if ($env:TERM_PROGRAM -eq 'vscode') {
+    $PowerPromptSettings.HideGitStatus = $true
+
+    #TODO: Better nerd prompt determination
+    $PowerPromptSettings.SupportsNerdFont = $true
+}
+

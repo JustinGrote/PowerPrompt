@@ -14,7 +14,7 @@ function Add-PowerPrompt {
         #The prompt string to append to
         [Parameter(ValueFromPipeline)][String]$Prompt,
         #The separator to use. Defaults to Powerline Separator.
-        [String]$Separator = [char]0xe0b4,
+        [String]$Separator = [char]0xe0b0,
         #The previous separator to use when appending to an existing prompt. Defaults to a generic separator match of up to 3 characters.
         [String]$LastSeparator,
         #The name of a background color. If not specified a random color will be chosen

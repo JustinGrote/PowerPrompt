@@ -1,18 +1,20 @@
 Describe "Default Theme" {
 
+    #Mock various variables to trigger prompt detections
+    Push-Location TestDrive:/
+    mkdir .terraform
+    echo "pester" > .terraform/environment
     ipmo C:\Users\JGrote\Projects\PowerPrompt\PowerPrompt\PowerPrompt.psd1 -force
+    & (gmo powerprompt) {$SCRIPT:PPDebugMock = $true}
 
-    #Function Prompt
-    $LastCommandSucceeded = $?
-    trap {write-host -fore red "PROMPT ERROR: $($PSItem.exception.message). `$error[0] for more information" } #; $PSItem | export-clixml $home\desktop\prompterror.clixml
-    $ErrorActionPreference = 'stop'
-
-    $prompt = New-PowerPromptBuilder
-
-    $prompt += @{
-        PromptText      = Get-PowerPromptCurrentDirectory
-        BackgroundColor = '#333333'
+    if (get-command 'git' -CommandType Application -ErrorAction SilentlyContinue) {
+        $null = git init *>&1
+        $null = git checkout -b pester *>&1
     }
 
-    write-host $prompt
+    #Function Prompt
+    $promptscript = Get-PowerPromptDefaultTheme -asScriptBlock
+    Write-Host (Invoke-Command $promptScript)
+
+    Pop-Location
 }
