@@ -21,3 +21,5 @@ jobs:
     # Runs a single command using the runners shell
     - name: Super Duper Linter
       uses: JustinGrote/Super-Duper-Linter@preview
+      with:
+        debug: true
