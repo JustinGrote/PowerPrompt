@@ -1,3 +1,7 @@
+# NOTICE - THIS REPOSITORY HAS BEEN ARCHIVED AND DEPRECATED IN FAVOR OF STARSHIP
+https://starship.rs
+
+
 # Autodetect Behavior
 This module automatically detects Windows Terminal and Visual Studio Code and performs the following customizations:
 
